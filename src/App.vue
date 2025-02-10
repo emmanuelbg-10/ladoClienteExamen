@@ -1,13 +1,15 @@
 <script setup>
-import { ref, watch, onMounted, computed } from 'vue';
-import Componente from './components/Componente.vue';
-import codes from './components/codes.json';
-import GoogleChart from './components/GoogleChart.vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import CountryData from './components/CountryData.vue';
+import GoogleChart from './components/GoogleChart.vue';
+import codes from './components/codes.json';
+
 const name = ref('');
 const codigo = ref('');
 const selectedCountries = ref([]);
 const countryNames = ref({});
+const dataTypes = ['population', 'pib', 'area', 'income']; // Array estático con las opciones
+const selectedDataType = ref(dataTypes[0]); // Valor seleccionado por defecto
 
 const fetchCountryNames = async () => {
   try {
@@ -18,7 +20,7 @@ const fetchCountryNames = async () => {
     const data = await response.json();
     countryNames.value = data;
   } catch (error) {
-    console.log('Error fetching country names:', error);
+    console.log('Pais no encontrado');
   }
 };
 
@@ -27,13 +29,15 @@ onMounted(() => {
 });
 
 const selectCode = (code) => {
-  if (code === 'XXX') {
+  if (!countryNames.value[code]) {
     console.log('pais no encontrado');
     return;
   }
   if (!selectedCountries.value.includes(code)) {
     selectedCountries.value.push(code);
     codigo.value = code;
+  } else {
+    console.log('pais no encontrado');
   }
 };
 
@@ -54,8 +58,20 @@ const sortedSelectedCountries = computed(() => {
   });
 });
 
+const generateChartData = computed(() => {
+  const data = [[ 'país', selectedDataType.value ]];
+  selectedCountries.value.forEach(countryCode => {
+    const countryName = countryNames.value[countryCode];
+    const countryData = countryDataMap[countryCode];
+    if (countryName && countryData) {
+      data.push([countryName, countryData[selectedDataType.value]]);
+    }
+  });
+  return data;
+});
+
 watch(codigo, (newCodigo) => {
-  if (newCodigo === 'XXX') {
+  if (!countryNames.value[newCodigo]) {
     console.log('pais no mostrado');
     return;
   }
@@ -73,10 +89,15 @@ watch(codigo, (newCodigo) => {
         }
         return response.json();
       })
-      .then(data => console.log(data))
+      .then(data => {
+        countryDataMap[newCodigo] = data;
+        console.log(data);
+      })
       .catch(error => console.log('error', error));
   }
 });
+
+const countryDataMap = ref({});
 </script>
 
 <template>
@@ -93,7 +114,7 @@ watch(codigo, (newCodigo) => {
       <h2>Codigos</h2>
       <ul>
         <li v-for="code in codes" :key="code" @click="selectCode(code)">
-          {{ code !== 'XXX' ? (countryNames[code] || code) : '' }}
+          {{ countryNames[code] || '' }}
         </li>
       </ul>
     </div>
@@ -107,10 +128,19 @@ watch(codigo, (newCodigo) => {
       </ul>
     </div>
     <div class="country-data">
-      <CountryData :codigo="codigo" @paisEliminado="handlePaisEliminado" /> <!-- Inserta el componente aquí -->
+      <CountryData :codigo="codigo" @paisEliminado="handlePaisEliminado" />
     </div>
-    <div class="options"></div>
-    <div class="chart"></div>
+    <div class="options">
+      <ul>
+        <li v-for="option in dataTypes" :key="option">
+          <input type="radio" :id="option" :value="option" v-model="selectedDataType">
+          <label :for="option">{{ option }}</label>
+        </li>
+      </ul>
+    </div>
+    <div class="chart">
+      <GoogleChart :data="generateChartData" />
+    </div>
   </div>
 </template>
 

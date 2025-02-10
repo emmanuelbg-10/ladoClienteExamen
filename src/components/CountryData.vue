@@ -22,13 +22,10 @@
         </td>
       </tr>
     </table>
-    <button>Eliminar</button>
+    <button @click="eliminarPais">Eliminar</button>
   </div>
   <div v-else>
-    <p>Selecciona un país para ver los datos.</p>
-  </div>
-  <div v-if="error">
-    <p style="color: red;">No se pueden mostrar los datos.</p>
+    <h3>No hay datos que mostrar</h3>
   </div>
 </template>
 
@@ -39,8 +36,10 @@ const props = defineProps({
   codigo: String
 });
 
+const emit = defineEmits(['paisEliminado']);
+
 const countryData = ref(null);
-const error = ref(false);
+
 
 const pibPerCapita = computed(() => {
   if (countryData.value && countryData.value.population) {
@@ -48,6 +47,23 @@ const pibPerCapita = computed(() => {
   }
   return 0;
 });
+
+const eliminarPais = async () => {
+  if (props.codigo) {
+    try {
+      const response = await fetch(`http://localhost:3000/api/country/${props.codigo}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      emit('paisEliminado', props.codigo);
+      countryData.value = '';
+    } catch (err) {
+      console.log('Error deleting country data:', err);
+    }
+  }
+};
 
 watch(() => props.codigo, async (newCodigo) => {
   if (newCodigo) {
@@ -57,10 +73,8 @@ watch(() => props.codigo, async (newCodigo) => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       countryData.value = await response.json();
-      error.value = false;
     } catch (err) {
       console.log('Error fetching country data:', err);
-      error.value = true;
       countryData.value = null;
     }
   }
