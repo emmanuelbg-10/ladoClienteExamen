@@ -3,7 +3,7 @@ import { ref, watch, onMounted, computed } from 'vue';
 import Componente from './components/Componente.vue';
 import codes from './components/codes.json';
 import GoogleChart from './components/GoogleChart.vue';
-
+import CountryData from './components/CountryData.vue';
 const name = ref('');
 const codigo = ref('');
 const selectedCountries = ref([]);
@@ -39,6 +39,11 @@ const selectCode = (code) => {
 
 const deselectCode = (code) => {
   selectedCountries.value = selectedCountries.value.filter(country => country !== code);
+};
+
+const handlePaisEliminado = (codigoEliminado) => {
+  selectedCountries.value = selectedCountries.value.filter(country => country !== codigoEliminado);
+  codigo.value = '';
 };
 
 const sortedSelectedCountries = computed(() => {
@@ -101,7 +106,9 @@ watch(codigo, (newCodigo) => {
         </li>
       </ul>
     </div>
-    <div class="country-data"></div>
+    <div class="country-data">
+      <CountryData :codigo="codigo" @paisEliminado="handlePaisEliminado" /> <!-- Inserta el componente aquí -->
+    </div>
     <div class="options"></div>
     <div class="chart"></div>
   </div>
