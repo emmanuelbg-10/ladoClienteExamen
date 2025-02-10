@@ -24,9 +24,7 @@
     </table>
     <button @click="eliminarPais">Eliminar</button>
   </div>
-  <div v-else>
-    <h3>No hay datos que mostrar</h3>
-  </div>
+    <h4 v-else>No hay datos que mostrar</h4>
 </template>
 
 <script setup>

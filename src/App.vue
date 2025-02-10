@@ -58,16 +58,23 @@ const sortedSelectedCountries = computed(() => {
   });
 });
 
+const countryDataMap = ref({});
+
 const generateChartData = computed(() => {
-  const data = [[ 'país', selectedDataType.value ]];
+  const data = [['país', selectedDataType.value]];
   selectedCountries.value.forEach(countryCode => {
     const countryName = countryNames.value[countryCode];
-    const countryData = countryDataMap[countryCode];
+    const countryData = countryDataMap.value[countryCode];
     if (countryName && countryData) {
       data.push([countryName, countryData[selectedDataType.value]]);
     }
   });
   return data;
+});
+
+watch([selectedCountries, selectedDataType], () => {
+  // Este watch se activará cuando cambie selectedCountries o selectedDataType
+  console.log('Datos actualizados para la gráfica');
 });
 
 watch(codigo, (newCodigo) => {
@@ -90,14 +97,12 @@ watch(codigo, (newCodigo) => {
         return response.json();
       })
       .then(data => {
-        countryDataMap[newCodigo] = data;
+        countryDataMap.value[newCodigo] = data;
         console.log(data);
       })
       .catch(error => console.log('error', error));
   }
 });
-
-const countryDataMap = ref({});
 </script>
 
 <template>
@@ -106,12 +111,12 @@ const countryDataMap = ref({});
       <h1>Datos mundiales</h1>
     </div>
     <div class="name">
-      <p>Ingresa tu nombre:</p>
+      <p>Inserta tu nombre:</p>
       <input type="text" v-model="name">
       <p v-if="name.trim() !== ''">Tu nombre es <strong>{{ name }}</strong> tiene {{ name.length }} letras</p>
     </div>
     <div class="div-codes">
-      <h2>Codigos</h2>
+      <h2>Códigos:</h2>
       <ul>
         <li v-for="code in codes" :key="code" @click="selectCode(code)">
           {{ countryNames[code] || '' }}
@@ -131,12 +136,10 @@ const countryDataMap = ref({});
       <CountryData :codigo="codigo" @paisEliminado="handlePaisEliminado" />
     </div>
     <div class="options">
-      <ul>
-        <li v-for="option in dataTypes" :key="option">
+      <span  v-for="option in dataTypes" :key="option">
           <input type="radio" :id="option" :value="option" v-model="selectedDataType">
           <label :for="option">{{ option }}</label>
-        </li>
-      </ul>
+      </span>
     </div>
     <div class="chart">
       <GoogleChart :data="generateChartData" />
