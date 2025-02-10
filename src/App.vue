@@ -9,4 +9,6 @@ import Componente from './components/Componente.vue';
 
 </template>
 
-<style scoped></style>
+<style scoped>
+
+</style>
