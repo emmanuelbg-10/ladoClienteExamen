@@ -80,11 +80,5 @@ watch(() => props.codigo, async (newCodigo) => {
 </script>
 
 <style scoped>
-h2 {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-}
-p {
-  margin: 0.5rem 0;
-}
+
 </style>
